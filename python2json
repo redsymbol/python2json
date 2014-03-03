@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+import sys
+import json
+
+# the following needed in case the evaled python_str references the python module
+import datetime
+class ObjectId(str): pass
+
+def get_args():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='',
+        epilog='',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        )
+    parser.add_argument('-P', '--no-pretty-print', action='store_true', default=False,
+                        help='Print compactly instead of pretty-printing')
+    return parser.parse_args()
+
+def format_json(obj, pretty_print):
+    xargs = {
+        'sort_keys' : True,
+        }
+    if pretty_print:
+        xargs.update({
+                'indent'     : 4,
+                'separators' : (',', ': '),
+            })
+    return json.dumps(obj, **xargs)
+
+def is_convertable(s):
+    return s.startswith('{') and s.endswith('}')
+
+if __name__ == '__main__':
+    args = get_args()
+    pretty_print = not args.no_pretty_print
+    python_str = sys.stdin.read().strip()
+    assert is_convertable(python_str), 'Input must be a python dictionary'
+    python_obj = eval(python_str)
+    print(format_json(python_obj, pretty_print))
